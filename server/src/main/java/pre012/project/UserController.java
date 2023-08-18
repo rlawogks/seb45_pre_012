@@ -3,6 +3,8 @@ package pre012.project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +36,20 @@ public class UserController {
         }
 
     }
+
+    @GetMapping("/login")
+    public ResponseEntity<String> loginUser(@AuthenticationPrincipal OAuth2User oauth2User) {
+        String provider = oauth2User.getName();
+        String providerId = oauth2User.getAttribute("sub");
+
+        User user = userService.getUserByProviderAndProviderId(provider, providerId);
+        if (user != null) {
+            return ResponseEntity.ok("로그인 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 실패");
+        }
+    }
+
 
 
     @PostMapping("/logout")

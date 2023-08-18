@@ -17,4 +17,11 @@ public class User {
     private String email;
     private String password;
     private String userName;
+    private String socialProvider;
+    private String providerId;
+
+    public void setSocialProvider(String provider, String providerId) {
+        this.socialProvider = provider;
+        this.providerId = providerId;
+    }
 }

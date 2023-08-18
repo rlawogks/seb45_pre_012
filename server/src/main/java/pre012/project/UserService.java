@@ -24,8 +24,20 @@ public class UserService {
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+       /* user.setpassword(password);*/
         user.setUserName(userName);
 
+        return userRepository.save(user);
+    }
+    public User getUserByProviderAndProviderId(String provider, String providerId) {
+        return userRepository.findBySocialProviderAndProviderId(provider, providerId).orElse(null);
+    }
+
+    public void setSocialProvider(User user, String provider, String providerId) {
+        user.setSocialProvider(provider, providerId);
+    }
+
+    public User saveUser(User user) {
         return userRepository.save(user);
     }
 
