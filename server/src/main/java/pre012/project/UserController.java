@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/users")
@@ -17,6 +20,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/create")
     public ResponseEntity<String> createUser(@RequestBody User user) {
@@ -59,5 +64,33 @@ public class UserController {
             session.invalidate();
         }
         return ResponseEntity.ok("로그아웃 성공");
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<String> deleteUser(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String password = request.get("password");
+
+        if (userService.authenticateUser(email, password)) {
+            userService.deleteUserByEmail(email);
+            return ResponseEntity.ok("회원 탈퇴 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("회원 탈퇴 실패");
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<String> updateUser(@RequestBody User request) {
+        User existingUser = userService.getUserByEmail(request.getEmail());
+
+        if (existingUser == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("사용자를 찾을 수 없습니다.");
+        }
+        existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        existingUser.setUserName(request.getUserName());
+
+        userService.saveUser(existingUser);
+
+        return ResponseEntity.ok("회원 정보 수정 성공");
     }
 }

@@ -12,7 +12,7 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder passwordEncoder;
 
     public User createUser(String email, String password, String userName) {
         if (userRepository.findByEmail(email).isPresent()) {
@@ -29,6 +29,8 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+
     public User getUserByProviderAndProviderId(String provider, String providerId) {
         return userRepository.findBySocialProviderAndProviderId(provider, providerId).orElse(null);
     }
@@ -48,10 +50,16 @@ public class UserService {
 
     public boolean authenticateUser(String email, String password) {
         User user = getUserByEmail(email);
-        if (user != null && user.getPassword() != null) {
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (user != null) {
             return passwordEncoder.matches(password, user.getPassword());
         }
         return false;
+    }
+
+    public void deleteUserByEmail(String email) {
+        User user = getUserByEmail(email);
+        if(user != null) {
+            userRepository.delete(user);
+        }
     }
 }
